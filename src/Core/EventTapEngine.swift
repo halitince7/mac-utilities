@@ -12,6 +12,7 @@ final class FeatureEngine: NSObject {
 
     private let settings = AppSettings.shared
     private let scrollDir = ScrollDirectionMonitor.shared
+    private let smoothScroller = SmoothScroller()
 
     func start() {
         // Ask for the permission once (passes immediately if already granted).
@@ -68,12 +69,30 @@ final class FeatureEngine: NSObject {
             ctrlPressed = event.flags.contains(.maskControl)
 
         case .scrollWheel:
+            // Our own synthetic smooth-scroll events: let them pass untouched.
+            if smoothScroller.isSynthetic(event) {
+                return Unmanaged.passUnretained(event)
+            }
             // Feature 1: Ctrl + scroll switches desktops (consumes the event).
             if ctrlPressed && settings.desktopSwitcher {
                 handleDesktopSwitch(event)
                 return nil
             }
-            // Feature 2: ScrollFix.
+
+            let isMouse = event.getIntegerValueField(.scrollWheelEventIsContinuous) == 0
+
+            // Feature 3: Smooth scrolling (mouse wheel only). Takes over the
+            // mouse scroll, applying the ScrollFix direction itself.
+            if isMouse && settings.smoothScrolling {
+                let invert = settings.scrollFix && scrollDir.naturalScrollingOn
+                let sign = invert ? -1.0 : 1.0
+                let dY = Double(event.getIntegerValueField(.scrollWheelEventDeltaAxis1))
+                let dX = Double(event.getIntegerValueField(.scrollWheelEventDeltaAxis2))
+                smoothScroller.enqueue(lineDeltaY: dY * sign, lineDeltaX: dX * sign)
+                return nil // consume the original chunky notch
+            }
+
+            // Feature 2: ScrollFix (direction only, no smoothing).
             if settings.scrollFix {
                 applyScrollFix(event)
             }

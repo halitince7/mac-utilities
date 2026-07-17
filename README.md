@@ -12,6 +12,7 @@
 |---|---|
 | **Desktop Switcher** | Switch between desktops with **Ctrl + Scroll Wheel** — perfect for a traditional PC mouse. |
 | **ScrollFix** | Independent scroll directions: the mouse scrolls traditionally while the trackpad stays natural — **works no matter how your system Natural Scrolling is set**. |
+| **Smooth Scrolling** | Turns the mouse wheel's chunky, line-by-line jumps into an animated pixel glide — much closer to a trackpad. |
 
 Toggle each feature on/off from the **menu bar** icon. Everything runs inside **one** background app (`MacUtilities.app`); adding a new feature later needs **no new permission** — it's all one process.
 
@@ -70,6 +71,9 @@ feature, see the permission status, and quit from there.
 - **Scroll direction:** your mouse scrolls the traditional way while the trackpad
   stays natural. This holds whether macOS *Natural Scrolling* is ON or OFF — the
   app reads the system setting and adjusts automatically.
+- **Smooth scrolling:** each wheel notch glides instead of jumping. Note this is
+  animated smoothing, not trackpad momentum — a wheel has no "release" gesture,
+  so there's no inertial flick; rapid notches just accumulate into a longer glide.
 - Clicking `MacUtilities.app` again (from Finder / Launchpad) just re-opens the
   menu-bar panel; it never launches a second copy.
 
@@ -90,6 +94,7 @@ src/
   Core/AppSettings.swift            # persisted feature toggles
   Core/PermissionMonitor.swift      # Accessibility trust state (drives UI)
   Core/ScrollDirectionMonitor.swift # reads the system Natural Scrolling setting
+  Core/SmoothScroller.swift         # animated pixel-glide for the mouse wheel
   Core/EventTapEngine.swift         # the CGEvent tap + feature logic
   App/AppDelegate.swift             # menu bar item, popover, single instance
   UI/MenuView.swift                 # SwiftUI control panel

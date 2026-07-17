@@ -25,6 +25,11 @@ struct MenuView: View {
                     title: "ScrollFix",
                     subtitle: "Traditional mouse · natural trackpad",
                     isOn: $settings.scrollFix)
+                FeatureRow(
+                    icon: "arrow.up.arrow.down",
+                    title: "Smooth Scrolling",
+                    subtitle: "Glide the mouse wheel like a trackpad",
+                    isOn: $settings.smoothScrolling)
             }
             .padding(14)
             Divider()
