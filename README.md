@@ -149,6 +149,12 @@ It requires a paid Apple Developer account and a one-time
 `xcrun notarytool store-credentials` setup (documented at the top of the
 script). Local self-signed builds need none of this.
 
+## Roadmap
+
+Planned features and the "one simple toggle" design philosophy live in
+[ROADMAP.md](ROADMAP.md). The short version: stay lightweight, on/off by default,
+no configuration screens.
+
 ## License
 
 [MIT](LICENSE) — free to use, modify, and distribute.
