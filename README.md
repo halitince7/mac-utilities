@@ -1,98 +1,74 @@
-# Mac Utilities: Desktop Switcher & ScrollFix
-
-Two lightweight macOS utilities that enhance desktop navigation and scrolling behavior. Both run silently in the background as system services.
-
-## Desktop Switcher
-Switch between desktops using **Ctrl + Scroll Wheel** - perfect for users with traditional PC mice.
-
-## ScrollFix  
-Independent scroll directions for mouse and trackpad. Keeps trackpad natural while making mouse scroll traditionally (requires "Natural Scrolling" ON in System Settings).
+<div align="center">
+  <img src="assets/icon-1024.png" width="128" alt="Mac Utilities icon" />
+  <h1>Mac Utilities</h1>
+  <p>A single lightweight macOS background app that bundles handy mouse & desktop tweaks — with <b>one</b> permission for all of them.</p>
+</div>
 
 ---
 
-## Quick Setup
+## Features
 
-### Option 1: One-Click Installer (Recommended)
+| Feature | What it does |
+|---|---|
+| **Desktop Switcher** | Switch between desktops with **Ctrl + Scroll Wheel** — perfect for a traditional PC mouse. |
+| **ScrollFix** | Independent scroll directions: the mouse scrolls traditionally while the trackpad stays natural. (Keep **Natural Scrolling ON** in System Settings.) |
 
-1. **Clone and install**:
-   ```bash
-   git clone https://github.com/halitince7/mac-desktop-switcher.git
-   cd mac-desktop-switcher
-   ./install.sh
-   ```
+Everything runs inside **one** background app (`MacUtilities.app`). Adding a new feature later needs **no new permission** — it's all one process.
 
-2. **Double-click `Mac Utilities Manager.app`** to open the GUI application
+## Why one app?
 
-3. **Click "Install All"** to install both services
+The old version shipped two separate binaries, each needing its own Accessibility grant, and the services could get stuck in a permission-prompt loop. The current design fixes both:
 
-4. **Grant permissions when prompted**:
-   - **System Settings** → **Privacy & Security** → **Accessibility** → Enable both services
-   - **System Settings** → **Privacy & Security** → **Input Monitoring** → Enable `scrollfix`
+- ✅ **One permission** — a single **Accessibility** grant (no Input Monitoring needed).
+- ✅ **No prompt loop** — the app asks once, then waits quietly and activates the moment you grant access. No restart, no "stop the service first" dance.
+- ✅ **No sudo** — installs to `~/Applications`, not `/usr/local/bin`.
+- ✅ **Code-signed bundle** with a stable identifier, so the permission survives rebuilds.
 
-### Option 2: Manual GUI Build
+## Install
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/halitince7/mac-desktop-switcher.git
-   cd mac-desktop-switcher
-   ```
-
-2. **Build the GUI application**:
-   ```bash
-   cd gui
-   ./build-gui.sh
-   cd ..
-   ```
-
-3. **Follow steps 2-4 from Option 1**
-
-### Option 3: Command Line Only
-
-1. **Clone and navigate to the repository**:
-   ```bash
-   git clone https://github.com/halitince7/mac-desktop-switcher.git
-   cd mac-desktop-switcher
-   ```
-
-2. **Install both services**:
-   ```bash
-   ./scripts/manage-services.sh create both
-   ```
-
-3. **Grant permissions** (same as above)
-
-That's it! Both services will start automatically and run in the background.
-
-**Important Note:** The GUI application is only for managing services (install/start/stop). You don't need to keep the GUI open for the services to work. Once installed, the services run automatically in the background even after restarting your computer.
-
----
-
-## Management Commands
-
-The `scripts/manage-services.sh` script handles everything:
+Requires the Swift toolchain (`xcode-select --install`).
 
 ```bash
-# Create and start services
-./scripts/manage-services.sh create both              # Install both services
-./scripts/manage-services.sh create desktop-switcher  # Install only desktop switcher
-./scripts/manage-services.sh create scrollfix         # Install only scrollfix
-
-# Control services
-./scripts/manage-services.sh start both     # Start services
-./scripts/manage-services.sh stop both      # Stop services  
-./scripts/manage-services.sh status         # Check status
-./scripts/manage-services.sh delete both    # Completely remove
-
-# Short aliases work too
-./scripts/manage-services.sh create ds      # Desktop switcher
-./scripts/manage-services.sh start sf       # ScrollFix
+git clone https://github.com/halitince7/mac-utilities.git
+cd mac-utilities
+bash scripts/build-app.sh
 ```
 
-## Requirements
+This compiles, signs, installs `MacUtilities.app` to `~/Applications`, and starts it as a login agent.
 
-- macOS (modern versions)
-- Swift compiler (install with: `xcode-select --install`)
-- Administrator privileges for installation
+**Final step — grant one permission:**
+
+> **System Settings → Privacy & Security → Accessibility → enable `MacUtilities`**
+
+It starts working immediately after you flip the switch. It also launches automatically on every login.
+
+## Usage
+
+- **Switch desktops:** hold **Ctrl** and scroll the mouse wheel up / down.
+- **Mouse scroll direction:** with macOS *Natural Scrolling* ON, your mouse now scrolls the traditional way while the trackpad stays natural.
+
+## Uninstall
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.mathatinlabs.macutilities.plist
+rm -f ~/Library/LaunchAgents/com.mathatinlabs.macutilities.plist
+rm -rf ~/Applications/MacUtilities.app
+```
+
+Then remove `MacUtilities` from **System Settings → Privacy & Security → Accessibility**.
+
+## Project layout
+
+```
+src/mac-utilities.swift    # the unified daemon (all features live here)
+scripts/build-app.sh       # build + sign + install
+assets/                    # icon source (make-icon.swift) + AppIcon.icns
+```
+
+## Roadmap / distribution
+
+This kind of utility relies on a global event tap + Accessibility, which the **Mac App Store sandbox does not allow** — so distribution is via a **Developer ID–signed, notarized** `.app`/DMG (like Rectangle, BetterTouchTool, etc.), not the App Store. The build script already has the signing hook ready for a Developer ID identity.
 
 ## License
-This project is open source. Feel free to use, modify, and distribute as needed.
+
+Open source — free to use, modify, and distribute.

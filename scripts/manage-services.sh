@@ -1,4 +1,4 @@
-./#!/bin/bash
+#!/bin/bash
 
 # Mac Desktop Utilities Service Manager
 # Manages desktop-switcher and scrollfix services
