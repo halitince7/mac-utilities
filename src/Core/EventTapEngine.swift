@@ -4,6 +4,7 @@ import Cocoa
 /// enabled features. One process, one permission (Accessibility).
 final class FeatureEngine: NSObject {
     private var ctrlPressed = false
+    private var shiftPressed = false
     private var lastScrollTime: TimeInterval = 0
     private let scrollCooldown: TimeInterval = 0.2
 
@@ -69,6 +70,7 @@ final class FeatureEngine: NSObject {
         switch type {
         case .flagsChanged:
             ctrlPressed = event.flags.contains(.maskControl)
+            shiftPressed = event.flags.contains(.maskShift)
 
         case .scrollWheel:
             // Our own synthetic smooth-scroll events: let them pass untouched.
@@ -90,7 +92,14 @@ final class FeatureEngine: NSObject {
                 let sign = invert ? -1.0 : 1.0
                 let dY = Double(event.getIntegerValueField(.scrollWheelEventDeltaAxis1))
                 let dX = Double(event.getIntegerValueField(.scrollWheelEventDeltaAxis2))
-                smoothScroller.enqueue(lineDeltaY: dY * sign, lineDeltaX: dX * sign)
+                if shiftPressed {
+                    // Shift + wheel = horizontal scroll. macOS normally does this
+                    // axis swap itself, but since we consume and re-emit the
+                    // event we must route the wheel amount to the X axis here.
+                    smoothScroller.enqueue(lineDeltaY: 0, lineDeltaX: (dY + dX) * sign)
+                } else {
+                    smoothScroller.enqueue(lineDeltaY: dY * sign, lineDeltaX: dX * sign)
+                }
                 return nil // consume the original chunky notch
             }
 

@@ -75,6 +75,8 @@ feature, see the permission status, and quit from there.
 - **Smooth scrolling:** each wheel notch glides instead of jumping. Note this is
   animated smoothing, not trackpad momentum — a wheel has no "release" gesture,
   so there's no inertial flick; rapid notches just accumulate into a longer glide.
+- **Horizontal scroll:** hold **Shift** and use the wheel to scroll sideways —
+  this keeps working (and stays smooth) with Smooth Scrolling enabled.
 - **Mouse buttons:** enable *Mouse Buttons*, then pick an action for the back and
   forward (thumb) buttons. Set a button to **None** to leave it untouched — the
   system default (e.g. browser back/forward) keeps working.

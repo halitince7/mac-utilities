@@ -28,9 +28,11 @@ open-source alternative for the 90% case.
 ## Planned — simple toggles
 
 - [ ] **Launch at Login** — toggle in the panel (currently always-on via the login agent)
-- [ ] **Horizontal Scroll with Shift** — hold Shift + wheel to scroll sideways
 - [ ] **Reverse Horizontal Scroll** — flip only the horizontal axis
 - [ ] **Keep Display Awake** — a lightweight "caffeine" toggle
+
+> Note: Shift + wheel horizontal scrolling is native macOS behavior and already
+> works — Smooth Scrolling now keeps it smooth instead of breaking it.
 
 ## Planned — toggle + one small choice
 
