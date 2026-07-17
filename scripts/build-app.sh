@@ -51,7 +51,7 @@ mkdir -p "$MACOS_DIR" "$RES_DIR"
 # --- 2. Compile ---
 info "Compiling..."
 swiftc -O -o "$MACOS_DIR/$APP_NAME" $(find "$SRC_DIR" -name '*.swift') \
-    -framework Cocoa -framework SwiftUI -framework Foundation
+    -framework Cocoa -framework SwiftUI -framework Foundation -framework CoreVideo
 ok "Compiled"
 
 # --- 3. Icon ---
