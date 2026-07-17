@@ -65,15 +65,46 @@ Then remove `MacUtilities` from **System Settings → Privacy & Security → Acc
 ## Project layout
 
 ```
-src/mac-utilities.swift    # the unified app: engine + menu bar UI
-scripts/build-app.sh       # build + sign + install  (also: uninstall)
-scripts/setup-signing.sh   # create a stable self-signed identity (auto-run)
-assets/                    # icon source (make-icon.swift) + AppIcon.icns
+src/
+  main.swift                        # NSApplication bootstrap
+  Core/Constants.swift              # bundle id, notification names, version
+  Core/AppSettings.swift            # persisted feature toggles
+  Core/PermissionMonitor.swift      # Accessibility trust state (drives UI)
+  Core/ScrollDirectionMonitor.swift # reads the system Natural Scrolling setting
+  Core/EventTapEngine.swift         # the CGEvent tap + feature logic
+  App/AppDelegate.swift             # menu bar item, popover, single instance
+  UI/MenuView.swift                 # SwiftUI control panel
+scripts/
+  build-app.sh                      # build + sign + install   (also: uninstall)
+  setup-signing.sh                  # stable self-signed identity (auto-run)
+  release.sh                        # Developer ID → DMG → notarize (skeleton)
+assets/                             # icon source (make-icon.swift) + AppIcon.icns
 ```
 
-## Roadmap / distribution
+All Swift files compile together via `swiftc` (no Xcode project needed) — the
+build script globs `src/**/*.swift`. Add a new feature as a small type under
+`src/Core/` and dispatch to it from `EventTapEngine`.
 
-This kind of utility relies on a global event tap + Accessibility, which the **Mac App Store sandbox does not allow** — so distribution is via a **Developer ID–signed, notarized** `.app`/DMG (like Rectangle, BetterTouchTool, etc.), not the App Store. The build script already has the signing hook ready for a Developer ID identity.
+## Distribution (notarized DMG)
+
+This kind of utility relies on a global event tap + Accessibility, which the
+**Mac App Store sandbox does not allow** — so distribution is via a **Developer
+ID–signed, notarized** `.app`/DMG (like Rectangle, BetterTouchTool, etc.), not
+the App Store.
+
+`scripts/release.sh` is a ready-to-fill skeleton that builds a hardened,
+Developer ID–signed app, packages it into a drag-to-install DMG, notarizes it
+with Apple, and staples the ticket:
+
+```bash
+DEVELOPER_ID="Developer ID Application: Your Name (TEAMID)" \
+NOTARY_PROFILE="MacUtilities-Notary" \
+bash scripts/release.sh
+```
+
+It requires a paid Apple Developer account and a one-time
+`xcrun notarytool store-credentials` setup (documented at the top of the
+script). Local self-signed builds need none of this.
 
 ## License
 

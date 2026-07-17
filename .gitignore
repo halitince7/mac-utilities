@@ -63,6 +63,7 @@ fastlane/test_output
 
 # Build artifacts
 build/
+dist/
 *.app
 *binary
 
