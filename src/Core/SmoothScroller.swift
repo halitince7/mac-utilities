@@ -26,10 +26,17 @@ final class SmoothScroller {
     private var carryY = 0.0         // sub-pixel remainder not yet emitted
     private var carryX = 0.0
     private var lastTime = 0.0
+    private var lastTickTime = 0.0   // when the previous wheel notch arrived
 
     // Tuning.
-    private let pixelsPerLine = 58.0 // travel distance per wheel notch
+    private let pixelsPerLine = 58.0 // base travel distance per wheel notch
     private let tau = 0.085          // smoothing time constant — bigger = longer, silkier glide
+
+    // Acceleration: spinning the wheel faster travels disproportionately
+    // farther, so long pages don't need endless flicking.
+    private let maxAcceleration = 3.0 // multiplier at full speed
+    private let fastTick = 0.03       // s between notches considered "fast"
+    private let slowTick = 0.20       // s between notches considered "deliberate"
 
     init() {
         CVDisplayLinkCreateWithActiveCGDisplays(&link)
@@ -53,15 +60,43 @@ final class SmoothScroller {
     /// Queue a wheel notch. Line deltas are already sign-corrected for the
     /// desired final direction.
     func enqueue(lineDeltaY: Double, lineDeltaX: Double) {
+        let now = CACurrentMediaTime()
+        let gap = lastTickTime == 0 ? Double.infinity : now - lastTickTime
+        lastTickTime = now
+
         lock.lock()
-        remainingY += lineDeltaY * pixelsPerLine
-        remainingX += lineDeltaX * pixelsPerLine
+
+        // Reversing direction: drop whatever is still queued the other way, so
+        // flicking back feels immediate instead of fighting the old glide.
+        var reversed = false
+        if lineDeltaY != 0, remainingY != 0, (lineDeltaY > 0) != (remainingY > 0) {
+            remainingY = 0; carryY = 0; reversed = true
+        }
+        if lineDeltaX != 0, remainingX != 0, (lineDeltaX > 0) != (remainingX > 0) {
+            remainingX = 0; carryX = 0; reversed = true
+        }
+
+        // A reversal starts a new gesture, so don't carry speed into it.
+        let distance = pixelsPerLine * (reversed ? 1 : accelerationMultiplier(gap: gap))
+        remainingY += lineDeltaY * distance
+        remainingX += lineDeltaX * distance
+
         lock.unlock()
 
         if let link = link, !CVDisplayLinkIsRunning(link) {
             lastTime = 0
             CVDisplayLinkStart(link)
         }
+    }
+
+    /// Maps the gap between notches to a distance multiplier. Squared so the
+    /// boost only really kicks in when genuinely spinning, leaving slow,
+    /// deliberate scrolling at 1:1.
+    private func accelerationMultiplier(gap: Double) -> Double {
+        guard gap.isFinite else { return 1 }
+        let clamped = min(max(gap, fastTick), slowTick)
+        let t = (slowTick - clamped) / (slowTick - fastTick) // 0 = slow, 1 = fast
+        return 1 + (maxAcceleration - 1) * t * t
     }
 
     private func frame(_ now: CVTimeStamp) {
